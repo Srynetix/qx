@@ -52,30 +52,25 @@ envs:
         working_directory: "C:\\godot\\my-game"
 
       # Open Godot documentation
-      - type: run
-        target: "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
-        args: ["-url", "https://docs.godotengine.org"]
+      - type: open_url
+        target: "https://docs.godotengine.org"
 
       # Open some music
-      - type: run
-        target: "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
-        args: ["-url", "https://musicforprogramming.net"]
+      - type: open_url
+        target: "https://musicforprogramming.net"
 ```
 
-Now, I can type `qx boot my-game`.
-I can also type `qx boot m`, because I only have one environment in my list that matches `m`.  
+Now, I can type `qx my-game`.
+I can also type `qx m`, because I only have one environment in my list that matches `m`.  
 And that's it.
 
 _What ? You are on Windows and you don't want to use the terminal ?_  
-Type <kbd>Win+R</kbd>, then `qx boot m` in the "Execute" window.
+Type <kbd>Win+R</kbd>, then `qx m` in the "Execute" window.
+
+And if you want, you can also use a _terminal user interface_ by typing `qx -i`.
 
 ## TODO
 
-- Simple variable system and override system
 - Define more actions
-- Find how to use PATH on Windows
-- Setup cargo-dist
-- Setup CI
-- Add TUI ("qx -i")
 - Add tests
 - Setup abstractions where needed
