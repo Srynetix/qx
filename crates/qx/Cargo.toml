@@ -1,0 +1,16 @@
+[package]
+name = "qx"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+qx-core = { path = "../qx-core" }
+qx-storage = { path = "../qx-storage" }
+qx-tui = { path = "../qx-tui" }
+
+clap = { version = "4.4.18", features = ["derive"] }
+tracing-subscriber = { version = "0.3.18", features = ["env-filter"] }
+
+color-eyre = { workspace = true }
+itertools = { workspace = true }
+tracing = { workspace = true }

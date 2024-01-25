@@ -1,0 +1,50 @@
+vars:
+  chrome_path: "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
+  example_url: "https://example.com"
+
+envs:
+  np:
+    description: "open a Notepad instance with a message"
+    actions:
+      - type: show_message
+        message: "Yep! Notepad!"
+
+      - type: run
+        target: "notepad"
+
+  np2:
+    description: "also open a Notepad instance with a message"
+    actions:
+      - type: show_message
+        message: "Yep! Notepad (#2)!"
+
+      - type: run
+        target: "notepad"
+
+  np3:
+    description: "yet another Notepad opener"
+    actions:
+      - type: show_message
+        message: "Yep! Notepad (#3)!"
+
+      - type: run
+        target: "notepad"
+
+  windows_open_yt:
+    description: "open YouTube on Google Chrome on Windows"
+    actions:
+      - type: run
+        target: ${chrome_path}
+        args: ["-url", "https://youtube.com"]
+
+  url:
+    description: "open an URL"
+    actions:
+      - type: open_url
+        target: ${example_url}
+
+  file:
+    description: "open a file or folder"
+    actions:
+      - type: open_file
+        target: "C:\\"

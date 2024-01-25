@@ -1,0 +1,14 @@
+[package]
+name = "qx-storage"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+qx-core = { path = "../qx-core" }
+
+dirs = "5.0.1"
+serde_yaml = "0.9.30"
+
+color-eyre = { workspace = true }
+serde = { workspace = true }
+tracing = { workspace = true }
