@@ -2,6 +2,8 @@
 
 A simple "productivity booster" tool to quickly run a set of actions.
 
+- [CHANGELOG](./CHANGELOG.md)
+
 ## What? Why?
 
 I'm often switching between projects which can greatly differ.

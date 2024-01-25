@@ -19,10 +19,6 @@ impl StatefulList {
         }
     }
 
-    pub fn unselect(&mut self) {
-        self.state.select(None);
-    }
-
     pub fn select_next(&mut self) {
         if let Some(value) = self.state.selected() {
             let next_value = (value + 1) % self.data.len();
@@ -43,14 +39,6 @@ impl StatefulList {
 
     pub fn selected_index(&self) -> Option<usize> {
         self.state.selected()
-    }
-
-    pub fn selected_value(&self) -> Option<&String> {
-        if let Some(value) = self.state.selected() {
-            self.data.get(value)
-        } else {
-            None
-        }
     }
 
     pub fn iter(&self) -> impl Iterator<Item = String> + '_ {

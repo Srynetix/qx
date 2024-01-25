@@ -2,6 +2,15 @@
 name = "qx"
 version = "0.1.0"
 edition = "2021"
+repository = "https://github.com/Srynetix/qx"
+authors = ["Denis BOURGE <Srynetix@users.noreply.github.com>"]
+description = "A simple 'productivity booster' tool to quickly run a set of actions."
+
+[package.metadata.wix]
+upgrade-guid = "0C162B63-5512-4857-A945-16A21800AF74"
+path-guid = "4896FB7E-C00F-41CC-8D49-4D34FE96D6C5"
+license = false
+eula = false
 
 [dependencies]
 qx-core = { path = "../qx-core" }
