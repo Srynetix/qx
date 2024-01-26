@@ -40,19 +40,20 @@ Using `qx`, you can define "environments", containing a set of actions.
 Here's a sample for the tasks I described above, as a `qx` configuration file:
 
 ```yaml
-envs:
+variables:
+  my_project_directory: "C:\\godot\\my-game"
+
+environments:
   my-game:
     actions:
       # Open Godot in the project folder
       - type: run
         target: "C:\\godot\\godot.exe"
-        working_directory: "C:\\godot\\my-game"
+        working_directory: "${my_project_directory}"
 
       # Open VS Code in the project folder
-      - type: run
-        target: "C:\\Users\\Me\\AppData\\Local\\Programs\\Microsoft VS Code\\Code.exe"
-        args: ["."]
-        working_directory: "C:\\godot\\my-game"
+      - type: vscode
+        target: "${my_project_directory}"
 
       # Open Godot documentation
       - type: open_url

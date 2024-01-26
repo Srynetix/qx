@@ -2,11 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.2.1] - 2024-01-26
 
 ### Features
 
 - Handle remote VS Code folders
+
+### Miscellaneous Tasks
+
+- Bump version to 0.2.1
 
 ## [0.2.0] - 2024-01-26
 
