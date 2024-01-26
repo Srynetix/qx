@@ -57,9 +57,13 @@ impl System {
     }
 
     pub fn open_vscode(&self, target: &Path) -> Result<()> {
-        Command::new(self.get_vscode_executable()?)
-            .arg(target)
-            .spawn()?;
+        let mut command = Command::new(self.get_vscode_executable()?);
+
+        if target.starts_with("vscode-remote://") {
+            command.arg("--folder-uri");
+        }
+
+        command.arg(target).spawn()?;
 
         Ok(())
     }
