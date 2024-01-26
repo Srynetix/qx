@@ -9,6 +9,10 @@ fmt:
 lint:
     cargo clippy --all
 
+# Build
+build:
+    cargo build
+
 # Install
 install:
     cargo install --path crates/qx

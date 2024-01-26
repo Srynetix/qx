@@ -1,6 +1,6 @@
 [package]
 name = "qx"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 repository = "https://github.com/Srynetix/qx"
 authors = ["Denis BOURGE <Srynetix@users.noreply.github.com>"]
