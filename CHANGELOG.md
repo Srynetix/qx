@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Bug Fixes
+
+- Update sample
+
+### Features
+
+- Add environ interpolation, vscode action, and a LICENSE file
+
+### Miscellaneous Tasks
+
+- Refactor small things
+
 ## [0.1.0] - 2024-01-25
 
 ### Documentation
