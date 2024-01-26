@@ -132,24 +132,24 @@ impl Action {
 }
 
 impl Resolvable for Action {
-    fn resolve(&mut self, vars: &Context) -> color_eyre::Result<()> {
+    fn resolve(&mut self, ctx: &Context) -> color_eyre::Result<()> {
         match self {
             Self::Run(cmd) => {
-                cmd.target.resolve(vars)?;
-                cmd.args.resolve(vars)?;
-                cmd.working_directory.resolve(vars)?;
+                cmd.target.resolve(ctx)?;
+                cmd.args.resolve(ctx)?;
+                cmd.working_directory.resolve(ctx)?;
             }
             Self::ShowMessage(cmd) => {
-                cmd.message.resolve(vars)?;
+                cmd.message.resolve(ctx)?;
             }
             Self::OpenUrl(cmd) => {
-                cmd.target.resolve(vars)?;
+                cmd.target.resolve(ctx)?;
             }
             Self::OpenFile(cmd) => {
-                cmd.target.resolve(vars)?;
+                cmd.target.resolve(ctx)?;
             }
             Self::VSCode(cmd) => {
-                cmd.target.resolve(vars)?;
+                cmd.target.resolve(ctx)?;
             }
         }
 

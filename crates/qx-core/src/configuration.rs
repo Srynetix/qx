@@ -7,17 +7,17 @@ use crate::{context::Context, environment::Environment, resolvable::Resolvable, 
 #[derive(Debug, Default)]
 pub struct Configuration {
     pub system: System,
-    pub vars: Context,
-    pub envs: HashMap<String, Environment>,
+    pub variables: Context,
+    pub environments: HashMap<String, Environment>,
 }
 
 impl Configuration {
-    pub fn find_environment(&self, name: &str) -> Vec<&Environment> {
-        if let Some(env) = self.envs.get(name) {
+    pub fn filter_environments(&self, name: &str) -> Vec<&Environment> {
+        if let Some(env) = self.environments.get(name) {
             return vec![env];
         }
 
-        self.envs
+        self.environments
             .iter()
             .filter(|(key, _)| key.starts_with(name))
             .map(|(_, value)| value)
@@ -26,7 +26,7 @@ impl Configuration {
     }
 
     pub fn list_environment_names(&self) -> Vec<&Environment> {
-        self.envs
+        self.environments
             .values()
             .sorted_by_key(|v| v.name.clone())
             .collect()
@@ -34,9 +34,9 @@ impl Configuration {
 }
 
 impl Resolvable for Configuration {
-    fn resolve(&mut self, vars: &Context) -> color_eyre::Result<()> {
-        for env in &mut self.envs.values_mut() {
-            env.resolve(vars)?;
+    fn resolve(&mut self, ctx: &Context) -> color_eyre::Result<()> {
+        for env in &mut self.environments.values_mut() {
+            env.resolve(ctx)?;
         }
 
         Ok(())

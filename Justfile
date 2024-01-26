@@ -13,6 +13,10 @@ lint:
 install:
     cargo install --path crates/qx
 
+# Test
+test:
+    cargo test --all
+
 # Changelog
 changelog:
     git cliff -o CHANGELOG.md

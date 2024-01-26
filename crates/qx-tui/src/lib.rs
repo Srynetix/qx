@@ -36,7 +36,7 @@ pub fn run_loop(configuration: &Configuration) -> Result<Choice> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
 
     let indexed_environments: Vec<_> = configuration
-        .envs
+        .environments
         .iter()
         .sorted_by_key(|(k, _)| k.to_string())
         .collect();

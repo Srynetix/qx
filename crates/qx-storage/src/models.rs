@@ -6,9 +6,10 @@ use qx_core::Action;
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub(crate) struct ConfigurationModel {
+    pub version: String,
     pub system: Option<HashMap<String, String>>,
-    pub vars: Option<HashMap<String, String>>,
-    pub envs: Option<HashMap<String, EnvironmentModel>>,
+    pub variables: Option<HashMap<String, String>>,
+    pub environments: Option<HashMap<String, EnvironmentModel>>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]

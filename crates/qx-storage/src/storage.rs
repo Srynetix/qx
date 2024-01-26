@@ -9,7 +9,7 @@ use crate::models::{ConfigurationModel, EnvironmentModel};
 pub struct ConfigurationStorage;
 
 impl ConfigurationStorage {
-    pub fn get_default_config_path() -> PathBuf {
+    pub fn get_default_configuration_path() -> PathBuf {
         let data_dir = dirs::data_dir().expect("Could not retrieve data directory.");
         data_dir.join("qx").join("config.yaml")
     }
@@ -23,8 +23,9 @@ impl ConfigurationStorage {
         let data = std::fs::read_to_string(path)?;
         let configuration: ConfigurationModel = serde_yaml::from_str(&data)?;
         let mut configuration = Self::configuration_from_serde_model(configuration);
-        let vars = configuration.vars.clone();
-        configuration.resolve(&vars)?;
+
+        let context = configuration.variables.clone();
+        configuration.resolve(&context)?;
 
         debug!(
             message = "Configuration parsed and resolved",
@@ -58,11 +59,12 @@ impl ConfigurationStorage {
 
     fn configuration_to_serde_model(configuration: &Configuration) -> ConfigurationModel {
         ConfigurationModel {
+            version: env!("CARGO_PKG_VERSION").to_string(),
             system: Some(configuration.system.0.clone()),
-            vars: Some(configuration.vars.0.clone()),
-            envs: Some(
+            variables: Some(configuration.variables.0.clone()),
+            environments: Some(
                 configuration
-                    .envs
+                    .environments
                     .iter()
                     .map(|(k, e)| (k.clone(), Self::environment_to_serde_model(e)))
                     .collect(),
@@ -73,9 +75,9 @@ impl ConfigurationStorage {
     fn configuration_from_serde_model(model: ConfigurationModel) -> Configuration {
         Configuration {
             system: System::new(model.system.unwrap_or_default()),
-            vars: Context::new(model.vars.unwrap_or_default()),
-            envs: model
-                .envs
+            variables: Context::new(model.variables.unwrap_or_default()),
+            environments: model
+                .environments
                 .unwrap_or_default()
                 .into_iter()
                 .map(|(k, v)| (k.clone(), Self::environment_from_serde_model(k, v)))

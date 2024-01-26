@@ -10,20 +10,20 @@ static VARIABLE_INTERPOLATION_RGX: Lazy<Regex> = Lazy::new(|| Regex::new(r"\$\{(
 static WINDOWS_ENVIRON_RGX: Lazy<Regex> = Lazy::new(|| Regex::new(r"%(.*?)%").unwrap());
 
 pub trait Resolvable {
-    fn resolve(&mut self, vars: &Context) -> Result<()>;
+    fn resolve(&mut self, ctx: &Context) -> Result<()>;
 }
 
 pub trait ResolvableClone {
     type Output;
 
-    fn resolved(&self, vars: &Context) -> Result<Self::Output>;
+    fn resolved(&self, ctx: &Context) -> Result<Self::Output>;
 }
 
 impl Resolvable for String {
-    fn resolve(&mut self, vars: &Context) -> Result<()> {
+    fn resolve(&mut self, ctx: &Context) -> Result<()> {
         let replace_fn = |caps: &Captures| -> String {
             let variable_name = caps.get(1).unwrap().as_str();
-            if let Some(value) = vars.get(variable_name) {
+            if let Some(value) = ctx.get(variable_name) {
                 value.clone()
             } else if let Ok(value) = std::env::var(variable_name) {
                 value.clone()
@@ -41,9 +41,9 @@ impl Resolvable for String {
 }
 
 impl Resolvable for PathBuf {
-    fn resolve(&mut self, vars: &Context) -> Result<()> {
+    fn resolve(&mut self, ctx: &Context) -> Result<()> {
         let mut s = self.to_string_lossy().to_string();
-        s.resolve(vars)?;
+        s.resolve(ctx)?;
 
         *self = PathBuf::from(s);
 
@@ -52,9 +52,9 @@ impl Resolvable for PathBuf {
 }
 
 impl<T: Resolvable> Resolvable for Option<T> {
-    fn resolve(&mut self, vars: &Context) -> Result<()> {
+    fn resolve(&mut self, ctx: &Context) -> Result<()> {
         if let Some(value) = self.as_mut() {
-            value.resolve(vars)?;
+            value.resolve(ctx)?;
         }
 
         Ok(())
@@ -62,9 +62,9 @@ impl<T: Resolvable> Resolvable for Option<T> {
 }
 
 impl<T: Resolvable> Resolvable for Vec<T> {
-    fn resolve(&mut self, vars: &Context) -> Result<()> {
+    fn resolve(&mut self, ctx: &Context) -> Result<()> {
         for value in self.iter_mut() {
-            value.resolve(vars)?;
+            value.resolve(ctx)?;
         }
 
         Ok(())
@@ -74,9 +74,9 @@ impl<T: Resolvable> Resolvable for Vec<T> {
 impl<T: Resolvable + Clone> ResolvableClone for T {
     type Output = T;
 
-    fn resolved(&self, vars: &Context) -> Result<Self::Output> {
+    fn resolved(&self, ctx: &Context) -> Result<Self::Output> {
         let mut cloned_value = self.clone();
-        cloned_value.resolve(vars)?;
+        cloned_value.resolve(ctx)?;
 
         Ok(cloned_value)
     }
@@ -85,9 +85,9 @@ impl<T: Resolvable + Clone> ResolvableClone for T {
 impl<'a> ResolvableClone for &'a str {
     type Output = String;
 
-    fn resolved(&self, vars: &Context) -> Result<Self::Output> {
+    fn resolved(&self, ctx: &Context) -> Result<Self::Output> {
         let mut value = self.to_string();
-        value.resolve(vars)?;
+        value.resolve(ctx)?;
 
         Ok(value)
     }
