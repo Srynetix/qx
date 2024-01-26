@@ -38,13 +38,19 @@ envs:
         args: ["-url", "https://youtube.com"]
 
   url:
-    description: "open an URL"
+    description: "open a sample URL"
     actions:
       - type: open_url
         target: ${example_url}
 
   file:
-    description: "open a file or folder"
+    description: "open C:\\ folder"
     actions:
       - type: open_file
         target: "C:\\"
+
+  vscode:
+    description: "open user directory in VSCode"
+    actions:
+      - type: vscode
+        target: "%USERPROFILE%"

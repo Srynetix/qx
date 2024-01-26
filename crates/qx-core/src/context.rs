@@ -8,6 +8,10 @@ impl Context {
         Self(values)
     }
 
+    pub fn empty() -> Self {
+        Self(HashMap::default())
+    }
+
     pub fn get(&self, key: &str) -> Option<&String> {
         self.0.get(key)
     }

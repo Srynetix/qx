@@ -1,5 +1,9 @@
 use std::{collections::HashMap, path::Path, process::Command};
 
+use color_eyre::Result;
+
+use crate::{resolvable::ResolvableClone, Context};
+
 #[derive(Debug, Clone, Default)]
 pub struct System(pub HashMap<String, String>);
 
@@ -20,7 +24,7 @@ impl System {
         self.0.get("web_browser_args")
     }
 
-    pub fn open_web_browser(&self, target: &str) -> color_eyre::Result<()> {
+    pub fn open_web_browser(&self, target: &str) -> Result<()> {
         if let Some(value) = self.get_web_browser_target() {
             Command::new(value)
                 .args(self.get_web_browser_args())
@@ -41,7 +45,26 @@ impl System {
         self.0.get("editor_args")
     }
 
-    pub fn open_editor(&self, target: &Path) -> color_eyre::Result<()> {
+    fn get_vscode_executable(&self) -> Result<String> {
+        if let Some(value) = self.0.get("vscode_path") {
+            Ok(value.clone())
+        } else if cfg!(windows) {
+            "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe".resolved(&Context::empty())
+        } else {
+            // Crossed fingers!
+            Ok("code".into())
+        }
+    }
+
+    pub fn open_vscode(&self, target: &Path) -> Result<()> {
+        Command::new(self.get_vscode_executable()?)
+            .arg(target)
+            .spawn()?;
+
+        Ok(())
+    }
+
+    pub fn open_editor(&self, target: &Path) -> Result<()> {
         if let Some(value) = self.get_editor_target() {
             Command::new(value)
                 .args(self.get_editor_args())
@@ -54,7 +77,7 @@ impl System {
         Ok(())
     }
 
-    pub fn open_file(&self, target: &Path) -> color_eyre::Result<()> {
+    pub fn open_file(&self, target: &Path) -> Result<()> {
         open::that(target)?;
 
         Ok(())

@@ -2,7 +2,10 @@
 
 A simple "productivity booster" tool to quickly run a set of actions.
 
+- [Latest release and installation instructions](https://github.com/Srynetix/qx/releases)
+  - Thanks to [cargo-dist] !
 - [CHANGELOG](./CHANGELOG.md)
+  - Thanks to [git-cliff] !
 
 ## What? Why?
 
@@ -69,8 +72,30 @@ Type <kbd>Win+R</kbd>, then `qx m` in the "Execute" window.
 
 And if you want, you can also use a _terminal user interface_ by typing `qx -i`.
 
+## Available actions
+
+- **run**: run an executable
+  - **target**: executable to run
+  - _args_: arguments to pass
+  - _working_directory_: working directory
+
+- **open_url**: open URL in the default web browser
+  - **target**: URL to open
+
+- **open_file**: open a file/folder using the default associated app
+  - **target**: file/folder to open
+
+- **vscode**: open a VS Code instance on a target
+  - **target**: file/folder to open in VS Code
+
+- **show_message**: display a message in the console
+  - **message**: message to show
+
 ## TODO
 
 - Define more actions
 - Add tests
 - Setup abstractions where needed
+
+[cargo-dist]: https://github.com/axodotdev/cargo-dist
+[git-cliff]: https://github.com/orhun/git-cliff/

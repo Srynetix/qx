@@ -28,16 +28,24 @@ pub struct ActionOpenFile {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ActionVSCode {
+    pub target: PathBuf,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum Action {
     Run(ActionRun),
     OpenFile(ActionOpenFile),
     ShowMessage(ActionShowMessage),
     OpenUrl(ActionOpenUrl),
+    #[serde(rename = "vscode")]
+    VSCode(ActionVSCode),
 }
 
 pub struct ActionContext<'a> {
     pub system: &'a System,
+    pub context: &'a Context,
 }
 
 impl Action {
@@ -86,6 +94,14 @@ impl Action {
 
                 ctx.system.open_web_browser(&action.target)?;
             }
+            Action::VSCode(action) => {
+                info!(
+                    message = "Running VSCode action",
+                    target = ?action.target
+                );
+
+                ctx.system.open_vscode(&action.target)?
+            }
         }
 
         Ok(())
@@ -108,6 +124,9 @@ impl Action {
             Self::ShowMessage(action) => {
                 format!("Show message {:?}", action.message)
             }
+            Self::VSCode(action) => {
+                format!("Open VSCode on target {:?}", action.target)
+            }
         }
     }
 }
@@ -127,6 +146,9 @@ impl Resolvable for Action {
                 cmd.target.resolve(vars)?;
             }
             Self::OpenFile(cmd) => {
+                cmd.target.resolve(vars)?;
+            }
+            Self::VSCode(cmd) => {
                 cmd.target.resolve(vars)?;
             }
         }

@@ -15,6 +15,7 @@ fn boot(config: &Configuration, env: &Environment) -> color_eyre::Result<()> {
 
     let context = ActionContext {
         system: &config.system,
+        context: &config.vars,
     };
 
     for action in &env.actions {
