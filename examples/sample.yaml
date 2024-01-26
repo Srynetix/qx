@@ -1,3 +1,5 @@
+version: "0.1.0"
+
 variables:
   chrome_path: "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
   example_url: "https://example.com"
