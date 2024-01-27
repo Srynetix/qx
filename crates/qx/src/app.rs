@@ -1,9 +1,10 @@
-use std::path::Path;
+use std::path::PathBuf;
 
 use clap::{CommandFactory, Parser};
 use color_eyre::{owo_colors::OwoColorize, Result};
 use itertools::Itertools;
-use qx_core::{banner, ActionContext, Configuration, Environment};
+use qx_core::{banner, ActionContext, CommandExecutor, Configuration, Environment};
+use qx_storage::{ConfigurationStorage, FileAccess};
 use qx_tui::Choice;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt, EnvFilter};
@@ -24,25 +25,34 @@ impl AppStatusCode {
     }
 }
 
-pub struct App;
+pub struct App<'a, E: CommandExecutor> {
+    executor: &'a E,
+    configuration: Configuration,
+    configuration_path: PathBuf,
+}
 
-impl App {
-    pub fn run() -> Result<AppStatusCode> {
+impl<'a, E: CommandExecutor> App<'a, E> {
+    pub fn run<F: FileAccess>(executor: &'a E, file_access: &'a F) -> Result<AppStatusCode> {
         Self::setup_error_handling()?;
         Self::show_banner();
 
         let args = Args::parse();
         Self::setup_logging(args.verbose);
 
-        let configuration = args.load_configuration_or_default()?;
-        let configuration_path = args.get_configuration_path();
+        let storage = ConfigurationStorage::new(file_access);
+        let configuration = args.load_configuration_or_default(&storage)?;
+        let configuration_path = args.get_configuration_path(&storage);
+
+        let app = Self {
+            configuration,
+            configuration_path,
+            executor,
+        };
 
         match args.command() {
-            ArgsCommand::Boot(filter) => Self::handle_environment(&configuration, filter),
-            ArgsCommand::Edit => Self::handle_edit(&configuration, &configuration_path),
-            ArgsCommand::Interactive => {
-                Self::handle_interactive(&configuration, &configuration_path)
-            }
+            ArgsCommand::Boot(filter) => app.handle_environment(filter),
+            ArgsCommand::Edit => app.handle_edit(),
+            ArgsCommand::Interactive => app.handle_interactive(),
         }
     }
 
@@ -71,37 +81,35 @@ impl App {
         println!("{}", banner());
     }
 
-    fn boot(configuration: &Configuration, environment: &Environment) -> Result<()> {
+    fn boot(&self, environment: &Environment) -> Result<()> {
         println!("  > Booting environment: {}", environment.name);
         println!();
 
         let context = ActionContext {
-            system: &configuration.system,
-            context: &configuration.variables,
+            system: &self.configuration.system,
+            context: &self.configuration.variables,
+            executor: self.executor,
         };
 
         environment.boot(&context)
     }
 
-    fn handle_environment(
-        configuration: &Configuration,
-        filter: Option<&String>,
-    ) -> Result<AppStatusCode> {
+    fn handle_environment(&self, filter: Option<&String>) -> Result<AppStatusCode> {
         if let Some(filter) = filter {
-            let filtered_environments = configuration.filter_environments(filter);
+            let filtered_environments = self.configuration.filter_environments(filter);
             if filtered_environments.is_empty() {
-                Self::handle_environment_no_match(filter)
+                self.handle_environment_no_match(filter)
             } else if filtered_environments.len() > 1 {
-                Self::handle_environment_too_many_matches(&filtered_environments, filter)
+                self.handle_environment_too_many_matches(&filtered_environments, filter)
             } else {
-                Self::handle_boot(configuration, filtered_environments[0])
+                self.handle_boot(filtered_environments[0])
             }
         } else {
-            Self::handle_list_environments(configuration)
+            self.handle_list_environments()
         }
     }
 
-    fn handle_environment_no_match(filter: &str) -> Result<AppStatusCode> {
+    fn handle_environment_no_match(&self, filter: &str) -> Result<AppStatusCode> {
         eprintln!(
             "{}",
             format!("Error: no environment found with name '{}'", filter).red()
@@ -111,6 +119,7 @@ impl App {
     }
 
     fn handle_environment_too_many_matches(
+        &self,
         environments: &[&Environment],
         filter: &str,
     ) -> Result<AppStatusCode> {
@@ -129,51 +138,47 @@ impl App {
         Ok(AppStatusCode::Error)
     }
 
-    fn handle_edit(
-        configuration: &Configuration,
-        configuration_path: &Path,
-    ) -> Result<AppStatusCode> {
+    fn handle_edit(&self) -> Result<AppStatusCode> {
         println!(
             "  > Opening configuration file {:?} for edition",
-            configuration_path
+            self.configuration_path
         );
         println!();
 
-        configuration.system.open_editor(configuration_path)?;
+        let intent = self
+            .configuration
+            .system
+            .open_editor(&self.configuration_path);
+        self.executor.execute(intent)?;
 
         Ok(AppStatusCode::Success)
     }
 
-    fn handle_interactive(
-        configuration: &Configuration,
-        configuration_path: &Path,
-    ) -> Result<AppStatusCode> {
+    fn handle_interactive(&self) -> Result<AppStatusCode> {
         println!(
             "  > Opening configuration file {:?} in interactive mode",
-            configuration_path
+            self.configuration_path
         );
         println!();
 
-        let choice = qx_tui::run_loop(configuration)?;
+        let choice = qx_tui::run_loop(&self.configuration)?;
         match choice {
-            Choice::Boot(env) => Self::boot(configuration, env)?,
+            Choice::Boot(env) => self.boot(env)?,
             Choice::Quit | Choice::Continue => (),
         }
 
         Ok(AppStatusCode::Success)
     }
 
-    fn handle_boot(
-        configuration: &Configuration,
-        environment: &Environment,
-    ) -> Result<AppStatusCode> {
-        Self::boot(configuration, environment)?;
+    fn handle_boot(&self, environment: &Environment) -> Result<AppStatusCode> {
+        self.boot(environment)?;
 
         Ok(AppStatusCode::Success)
     }
 
-    fn handle_list_environments(configuration: &Configuration) -> Result<AppStatusCode> {
-        let envs = configuration
+    fn handle_list_environments(&self) -> Result<AppStatusCode> {
+        let envs = self
+            .configuration
             .list_environment_names()
             .iter()
             .map(|e| format!("{}", e))

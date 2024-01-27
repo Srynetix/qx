@@ -1,4 +1,6 @@
-use crate::{actions::Action, context::Context, resolvable::Resolvable, ActionContext};
+use crate::{
+    actions::Action, context::Context, resolvable::Resolvable, ActionContext, CommandExecutor,
+};
 use color_eyre::Result;
 
 #[derive(Debug)]
@@ -9,7 +11,7 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn boot(&self, context: &ActionContext) -> Result<()> {
+    pub fn boot<E: CommandExecutor>(&self, context: &ActionContext<E>) -> Result<()> {
         for action in &self.actions {
             action.execute(context)?;
         }
@@ -25,11 +27,10 @@ impl std::fmt::Display for Environment {
 }
 
 impl Resolvable for Environment {
-    fn resolve(&mut self, ctx: &Context) -> color_eyre::Result<()> {
+    fn resolve(&mut self, ctx: &Context) {
+        self.description.resolve(ctx);
         for action in &mut self.actions {
-            action.resolve(ctx)?;
+            action.resolve(ctx);
         }
-
-        Ok(())
     }
 }

@@ -79,6 +79,7 @@ And if you want, you can also use a _terminal user interface_ by typing `qx -i`.
   - **target**: executable to run
   - _args_: arguments to pass
   - _working_directory_: working directory
+  - _creation_type_: choose to "wait" for the application or to "detach" the application (defaults to "detach")
 
 - **open_url**: open URL in the default web browser
   - **target**: URL to open

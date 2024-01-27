@@ -1,8 +1,9 @@
-use std::{collections::HashMap, path::Path, process::Command};
+use std::{collections::HashMap, path::Path};
 
-use color_eyre::Result;
-
-use crate::{resolvable::ResolvableClone, Context};
+use crate::{
+    intent::{CommandCreationType, CommandIntent},
+    resolvable::ResolvableClone,
+};
 
 #[derive(Debug, Clone, Default)]
 pub struct System(pub HashMap<String, String>);
@@ -24,19 +25,6 @@ impl System {
         self.0.get("web_browser_args")
     }
 
-    pub fn open_web_browser(&self, target: &str) -> Result<()> {
-        if let Some(value) = self.get_web_browser_target() {
-            Command::new(value)
-                .args(self.get_web_browser_args())
-                .arg(target)
-                .spawn()?;
-        } else {
-            open::that(target)?;
-        }
-
-        Ok(())
-    }
-
     fn get_editor_target(&self) -> Option<&String> {
         self.0.get("editor_path")
     }
@@ -45,45 +33,79 @@ impl System {
         self.0.get("editor_args")
     }
 
-    fn get_vscode_executable(&self) -> Result<String> {
+    fn get_vscode_executable(&self) -> String {
         if let Some(value) = self.0.get("vscode_path") {
-            Ok(value.clone())
+            value.clone()
         } else if cfg!(windows) {
-            "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe".resolved(&Context::empty())
+            "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe".resolved_without_context()
         } else {
             // Crossed fingers!
-            Ok("code".into())
+            "code".into()
         }
     }
 
-    pub fn open_vscode(&self, target: &Path) -> Result<()> {
-        let mut command = Command::new(self.get_vscode_executable()?);
-
-        if target.starts_with("vscode-remote://") {
-            command.arg("--folder-uri");
-        }
-
-        command.arg(target).spawn()?;
-
-        Ok(())
-    }
-
-    pub fn open_editor(&self, target: &Path) -> Result<()> {
-        if let Some(value) = self.get_editor_target() {
-            Command::new(value)
-                .args(self.get_editor_args())
-                .arg(target)
-                .status()?;
+    pub fn open_web_browser(&self, target: &str) -> CommandIntent {
+        if let Some(value) = self.get_web_browser_target() {
+            CommandIntent::Custom {
+                target: value.into(),
+                arguments: self
+                    .get_web_browser_args()
+                    .into_iter()
+                    .map(ToOwned::to_owned)
+                    .chain(std::iter::once(target.into()))
+                    .collect(),
+                working_directory: None,
+                creation_type: CommandCreationType::Detach,
+            }
         } else {
-            open::that(target)?;
+            CommandIntent::System {
+                target: target.into(),
+                creation_type: CommandCreationType::Detach,
+            }
         }
-
-        Ok(())
     }
 
-    pub fn open_file(&self, target: &Path) -> Result<()> {
-        open::that(target)?;
+    pub fn open_vscode(&self, target: &Path) -> CommandIntent {
+        let mut arguments = vec![];
+        if target.starts_with("vscode-remote://") {
+            arguments.push("--folder-uri".into());
+        }
 
-        Ok(())
+        arguments.push(target.to_string_lossy().to_string());
+
+        CommandIntent::Custom {
+            target: self.get_vscode_executable(),
+            arguments,
+            working_directory: None,
+            creation_type: CommandCreationType::Detach,
+        }
+    }
+
+    pub fn open_editor(&self, target: &Path) -> CommandIntent {
+        if let Some(target) = self.get_editor_target() {
+            CommandIntent::Custom {
+                target: target.clone(),
+                arguments: self
+                    .get_editor_args()
+                    .into_iter()
+                    .map(|a| a.to_owned())
+                    .chain(std::iter::once(target.into()))
+                    .collect(),
+                working_directory: None,
+                creation_type: CommandCreationType::Wait,
+            }
+        } else {
+            CommandIntent::System {
+                target: target.to_string_lossy().to_string(),
+                creation_type: CommandCreationType::Wait,
+            }
+        }
+    }
+
+    pub fn open_file(&self, target: &Path) -> CommandIntent {
+        CommandIntent::System {
+            target: target.to_string_lossy().to_string(),
+            creation_type: CommandCreationType::Detach,
+        }
     }
 }

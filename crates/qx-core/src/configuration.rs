@@ -34,11 +34,9 @@ impl Configuration {
 }
 
 impl Resolvable for Configuration {
-    fn resolve(&mut self, ctx: &Context) -> color_eyre::Result<()> {
+    fn resolve(&mut self, ctx: &Context) {
         for env in &mut self.environments.values_mut() {
-            env.resolve(ctx)?;
+            env.resolve(ctx);
         }
-
-        Ok(())
     }
 }

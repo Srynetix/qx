@@ -1,15 +1,22 @@
-use std::{path::PathBuf, process::Command};
+use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 use tracing::info;
 
-use crate::{context::Context, resolvable::Resolvable, system::System};
+use crate::{
+    context::Context,
+    intent::{CommandCreationType, CommandIntent},
+    resolvable::Resolvable,
+    CommandExecutor, System,
+};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ActionRun {
     pub target: String,
     pub args: Option<Vec<String>>,
     pub working_directory: Option<PathBuf>,
+    #[serde(default = "CommandCreationType::detach")]
+    pub creation_type: CommandCreationType,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -43,13 +50,14 @@ pub enum Action {
     VSCode(ActionVSCode),
 }
 
-pub struct ActionContext<'a> {
+pub struct ActionContext<'a, E: CommandExecutor> {
     pub system: &'a System,
     pub context: &'a Context,
+    pub executor: &'a E,
 }
 
 impl Action {
-    pub fn execute(&self, ctx: &ActionContext) -> color_eyre::Result<()> {
+    pub fn execute<E: CommandExecutor>(&self, ctx: &ActionContext<E>) -> color_eyre::Result<()> {
         match self {
             Action::Run(action) => {
                 info!(
@@ -59,16 +67,18 @@ impl Action {
                     working_directory = ?action.working_directory
                 );
 
-                let mut command = Command::new(&action.target);
-                if let Some(args) = &action.args {
-                    command.args(args);
-                }
+                let intent = CommandIntent::Custom {
+                    target: action.target.clone(),
+                    arguments: action
+                        .args
+                        .as_ref()
+                        .map(|value| value.iter().map(Into::into).collect())
+                        .unwrap_or_default(),
+                    working_directory: action.working_directory.clone(),
+                    creation_type: action.creation_type.clone(),
+                };
 
-                if let Some(working_directory) = &action.working_directory {
-                    command.current_dir(working_directory);
-                }
-
-                command.spawn()?;
+                ctx.executor.execute(intent)?;
             }
             Action::OpenFile(action) => {
                 info!(
@@ -76,7 +86,8 @@ impl Action {
                     target = ?action.target
                 );
 
-                ctx.system.open_file(&action.target)?;
+                let intent = ctx.system.open_file(&action.target);
+                ctx.executor.execute(intent)?;
             }
             Action::ShowMessage(action) => {
                 info!(
@@ -92,7 +103,8 @@ impl Action {
                     target = ?action.target
                 );
 
-                ctx.system.open_web_browser(&action.target)?;
+                let intent = ctx.system.open_web_browser(&action.target);
+                ctx.executor.execute(intent)?;
             }
             Action::VSCode(action) => {
                 info!(
@@ -100,7 +112,8 @@ impl Action {
                     target = ?action.target
                 );
 
-                ctx.system.open_vscode(&action.target)?
+                let intent = ctx.system.open_vscode(&action.target);
+                ctx.executor.execute(intent)?;
             }
         }
 
@@ -111,8 +124,8 @@ impl Action {
         match self {
             Self::Run(action) => {
                 format!(
-                    "Run application {:?} with args {:?} and working directory {:?}",
-                    action.target, action.args, action.working_directory
+                    "Run application {:?} with args {:?} and working directory {:?} using creation type {:?}",
+                    action.target, action.args, action.working_directory, action.creation_type
                 )
             }
             Self::OpenFile(action) => {
@@ -132,27 +145,25 @@ impl Action {
 }
 
 impl Resolvable for Action {
-    fn resolve(&mut self, ctx: &Context) -> color_eyre::Result<()> {
+    fn resolve(&mut self, ctx: &Context) {
         match self {
             Self::Run(cmd) => {
-                cmd.target.resolve(ctx)?;
-                cmd.args.resolve(ctx)?;
-                cmd.working_directory.resolve(ctx)?;
+                cmd.target.resolve(ctx);
+                cmd.args.resolve(ctx);
+                cmd.working_directory.resolve(ctx);
             }
             Self::ShowMessage(cmd) => {
-                cmd.message.resolve(ctx)?;
+                cmd.message.resolve(ctx);
             }
             Self::OpenUrl(cmd) => {
-                cmd.target.resolve(ctx)?;
+                cmd.target.resolve(ctx);
             }
             Self::OpenFile(cmd) => {
-                cmd.target.resolve(ctx)?;
+                cmd.target.resolve(ctx);
             }
             Self::VSCode(cmd) => {
-                cmd.target.resolve(ctx)?;
+                cmd.target.resolve(ctx);
             }
         }
-
-        Ok(())
     }
 }

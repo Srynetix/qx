@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use clap::Parser;
 use color_eyre::Result;
 use qx_core::Configuration;
-use qx_storage::ConfigurationStorage;
+use qx_storage::{ConfigurationStorage, FileAccess};
 
 pub enum ArgsCommand<'a> {
     Boot(Option<&'a String>),
@@ -35,26 +35,32 @@ pub struct Args {
 }
 
 impl Args {
-    pub fn load_configuration_or_default(&self) -> Result<Configuration> {
+    pub fn load_configuration_or_default<F: FileAccess>(
+        &self,
+        storage: &ConfigurationStorage<F>,
+    ) -> Result<Configuration> {
         if let Some(configuration_path) = &self.configuration_path {
-            ConfigurationStorage::read_from_path(configuration_path)
+            storage.read_from_path(configuration_path)
         } else {
-            let configuration_path = ConfigurationStorage::get_default_configuration_path();
-            if !configuration_path.exists() {
+            let configuration_path = storage.get_default_configuration_path();
+            if !storage.file_access.file_exists(&configuration_path) {
                 let configuration = Configuration::default();
-                ConfigurationStorage::write_to_path(&configuration, &configuration_path)?;
+                storage.write_to_path(&configuration, &configuration_path)?;
                 Ok(configuration)
             } else {
-                ConfigurationStorage::read_from_path(&configuration_path)
+                storage.read_from_path(&configuration_path)
             }
         }
     }
 
-    pub fn get_configuration_path(&self) -> PathBuf {
+    pub fn get_configuration_path<F: FileAccess>(
+        &self,
+        storage: &ConfigurationStorage<F>,
+    ) -> PathBuf {
         if let Some(configuration_path) = &self.configuration_path {
             configuration_path.clone()
         } else {
-            ConfigurationStorage::get_default_configuration_path()
+            storage.get_default_configuration_path()
         }
     }
 

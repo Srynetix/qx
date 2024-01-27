@@ -2,6 +2,8 @@ mod actions;
 mod configuration;
 mod context;
 mod environment;
+mod intent;
+mod io;
 mod resolvable;
 mod system;
 
@@ -9,6 +11,7 @@ pub use actions::{Action, ActionContext};
 pub use configuration::Configuration;
 pub use context::Context;
 pub use environment::Environment;
+pub use io::{CommandExecutor, CommandExecutorIo};
 pub use resolvable::Resolvable;
 pub use system::System;
 
