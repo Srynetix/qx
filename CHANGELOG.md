@@ -2,9 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.3.1] - 2024-01-29
 
-[e1f6808](e1f68084cee170c65bd432ea7ab5c26889956e33)
+[e1f6808](e1f68084cee170c65bd432ea7ab5c26889956e33)...[c9bfe77](c9bfe779dd7ea477ad701c66acb10a01f4b0ba05)
 
 ### Features
 
