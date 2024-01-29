@@ -2,6 +2,13 @@
 name = "xtask"
 version = "0.0.0"
 edition = "2021"
+publish = false
+
+[package.metadata.wix]
+upgrade-guid = "7D118029-88F0-4D08-8AC2-B6176828BC90"
+path-guid = "CD0CE5A7-C8CD-47BB-B4D9-1B70EAED8E14"
+license = false
+eula = false
 
 [dependencies]
 toml_edit = "0.21.0"
