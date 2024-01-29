@@ -93,6 +93,22 @@ And if you want, you can also use a _terminal user interface_ by typing `qx -i`.
 - **show_message**: display a message in the console
   - **message**: message to show
 
+## Defaulting to interactive mode
+
+If you use `qx -i` all the time instead of `qx`, you can also defaults to interactive mode by editing your
+configuration file, and adding this line in the `system` section:
+
+```yaml
+system:
+  defaults_to_interactive: true
+
+# ...
+# Rest of your YAML file
+# ...
+```
+
+Now, just type `qx` and the TUI will show up.
+
 ## TODO
 
 - Define more actions
