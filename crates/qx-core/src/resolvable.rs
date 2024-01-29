@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use once_cell::sync::Lazy;
 use regex::{Captures, Regex};
 use tracing::warn;
+use url::Url;
 
 use crate::context::Context;
 
@@ -93,5 +94,14 @@ impl<'a> ResolvableClone for &'a str {
         let mut value = self.to_string();
         value.resolve(ctx);
         value
+    }
+}
+
+impl Resolvable for Url {
+    fn resolve(&mut self, ctx: &Context) {
+        let mut value = self.to_string();
+        value.resolve(ctx);
+
+        *self = Url::parse(&value).unwrap()
     }
 }

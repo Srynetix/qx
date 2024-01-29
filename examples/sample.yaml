@@ -1,9 +1,32 @@
-version: "0.1.0"
+# Version of the configuration file, should follow the qx version.
+version: "0.3.0"
 
+# System configuration.
+system:
+  # Path to web browser executable
+  # web_browser_path: ./my/browser/path
+
+  # Web browser arguments
+  # web_browser_arguments: []
+
+  # Path to editor executable
+  # editor_path: ./my/editor/path
+
+  # Editor arguments
+  # editor_arguments: []
+
+  # Path to VS Code executable
+  # vscode_path: ./my/vsode/path
+
+  # Defaults to interactive mode
+  defaults_to_interactive: false
+
+# Variables used in environments.
 variables:
   chrome_path: "C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe"
   example_url: "https://example.com"
 
+# Environment definitions.
 environments:
   np:
     description: "open a Notepad instance with a message"

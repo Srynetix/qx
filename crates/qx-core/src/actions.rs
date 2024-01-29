@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 use tracing::info;
+use url::Url;
 
 use crate::{
     context::Context,
@@ -12,7 +13,7 @@ use crate::{
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ActionRun {
-    pub target: String,
+    pub target: PathBuf,
     pub args: Option<Vec<String>>,
     pub working_directory: Option<PathBuf>,
     #[serde(default = "CommandCreationType::detach")]
@@ -26,7 +27,7 @@ pub struct ActionShowMessage {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ActionOpenUrl {
-    pub target: String,
+    pub target: Url,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

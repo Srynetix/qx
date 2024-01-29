@@ -1,65 +1,58 @@
-use std::{collections::HashMap, path::Path};
+use serde::{Deserialize, Serialize};
+use std::path::{Path, PathBuf};
+use url::Url;
 
 use crate::{
     intent::{CommandCreationType, CommandIntent},
     resolvable::ResolvableClone,
 };
 
-#[derive(Debug, Clone, Default)]
-pub struct System(pub HashMap<String, String>);
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct System {
+    web_browser_path: Option<PathBuf>,
+    web_browser_arguments: Option<Vec<String>>,
+    editor_path: Option<PathBuf>,
+    editor_arguments: Option<Vec<String>>,
+    vscode_path: Option<PathBuf>,
+    #[serde(default)]
+    defaults_to_interactive: bool,
+}
 
 impl System {
-    pub fn new(values: HashMap<String, String>) -> Self {
-        Self(values)
-    }
-
-    pub fn get(&self, key: &str) -> Option<&String> {
-        self.0.get(key)
-    }
-
-    fn get_web_browser_target(&self) -> Option<&String> {
-        self.0.get("web_browser_path")
-    }
-
-    fn get_web_browser_args(&self) -> Option<&String> {
-        self.0.get("web_browser_args")
-    }
-
-    fn get_editor_target(&self) -> Option<&String> {
-        self.0.get("editor_path")
-    }
-
-    fn get_editor_args(&self) -> Option<&String> {
-        self.0.get("editor_args")
-    }
-
-    fn get_vscode_executable(&self) -> String {
-        if let Some(value) = self.0.get("vscode_path") {
-            value.clone()
+    fn get_vscode_executable(&self) -> PathBuf {
+        if let Some(value) = self.vscode_path.as_ref() {
+            value.into()
         } else if cfg!(windows) {
-            "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe".resolved_without_context()
+            "%LOCALAPPDATA%\\Programs\\Microsoft VS Code\\Code.exe"
+                .resolved_without_context()
+                .into()
         } else {
             // Crossed fingers!
             "code".into()
         }
     }
 
-    pub fn open_web_browser(&self, target: &str) -> CommandIntent {
-        if let Some(value) = self.get_web_browser_target() {
+    pub fn should_defaults_to_interactive(&self) -> bool {
+        self.defaults_to_interactive
+    }
+
+    pub fn open_web_browser(&self, target: &Url) -> CommandIntent {
+        if let Some(value) = self.web_browser_path.as_ref() {
             CommandIntent::Custom {
                 target: value.into(),
                 arguments: self
-                    .get_web_browser_args()
-                    .into_iter()
-                    .map(ToOwned::to_owned)
-                    .chain(std::iter::once(target.into()))
+                    .web_browser_arguments
+                    .iter()
+                    .flatten()
+                    .cloned()
+                    .chain(std::iter::once(target.to_string()))
                     .collect(),
                 working_directory: None,
                 creation_type: CommandCreationType::Detach,
             }
         } else {
             CommandIntent::System {
-                target: target.into(),
+                target: target.to_string().into(),
                 creation_type: CommandCreationType::Detach,
             }
         }
@@ -82,21 +75,22 @@ impl System {
     }
 
     pub fn open_editor(&self, target: &Path) -> CommandIntent {
-        if let Some(target) = self.get_editor_target() {
+        if let Some(editor_path) = self.editor_path.as_ref() {
             CommandIntent::Custom {
-                target: target.clone(),
+                target: editor_path.into(),
                 arguments: self
-                    .get_editor_args()
-                    .into_iter()
-                    .map(|a| a.to_owned())
-                    .chain(std::iter::once(target.into()))
+                    .editor_arguments
+                    .iter()
+                    .flatten()
+                    .cloned()
+                    .chain(std::iter::once(target.to_string_lossy().to_string()))
                     .collect(),
                 working_directory: None,
                 creation_type: CommandCreationType::Wait,
             }
         } else {
             CommandIntent::System {
-                target: target.to_string_lossy().to_string(),
+                target: target.into(),
                 creation_type: CommandCreationType::Wait,
             }
         }
@@ -104,7 +98,7 @@ impl System {
 
     pub fn open_file(&self, target: &Path) -> CommandIntent {
         CommandIntent::System {
-            target: target.to_string_lossy().to_string(),
+            target: target.into(),
             creation_type: CommandCreationType::Detach,
         }
     }

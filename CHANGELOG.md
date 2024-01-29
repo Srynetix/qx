@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### Documentation
+
+- README and CHANGELOG update
+
+### Features
+
+- Add abstractions
+
 ## [0.2.1] - 2024-01-26
 
 ### Features

@@ -1,6 +1,6 @@
 [package]
 name = "qx-core"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 
 [dependencies]
@@ -12,3 +12,4 @@ color-eyre = { workspace = true }
 itertools = { workspace = true }
 serde = { workspace = true }
 tracing = { workspace = true }
+url = { version = "2.5.0", features = ["serde"] }

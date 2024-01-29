@@ -19,11 +19,11 @@ impl CommandCreationType {
 #[derive(Debug, Clone)]
 pub enum CommandIntent {
     System {
-        target: String,
+        target: PathBuf,
         creation_type: CommandCreationType,
     },
     Custom {
-        target: String,
+        target: PathBuf,
         arguments: Vec<String>,
         working_directory: Option<PathBuf>,
         creation_type: CommandCreationType,

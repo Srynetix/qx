@@ -1,7 +1,7 @@
 use color_eyre::Result;
 use std::path::{Path, PathBuf};
 
-use qx_core::{Configuration, Context, Environment, Resolvable, System};
+use qx_core::{Configuration, Context, Environment, Resolvable};
 use tracing::{debug, info};
 
 use crate::{
@@ -71,7 +71,7 @@ impl<'a, F: FileAccess> ConfigurationStorage<'a, F> {
     fn configuration_to_serde_model(&self, configuration: &Configuration) -> ConfigurationModel {
         ConfigurationModel {
             version: env!("CARGO_PKG_VERSION").to_string(),
-            system: Some(configuration.system.0.clone()),
+            system: Some(configuration.system.clone()),
             variables: Some(configuration.variables.0.clone()),
             environments: Some(
                 configuration
@@ -85,7 +85,7 @@ impl<'a, F: FileAccess> ConfigurationStorage<'a, F> {
 
     fn configuration_from_serde_model(&self, model: ConfigurationModel) -> Configuration {
         Configuration {
-            system: System::new(model.system.unwrap_or_default()),
+            system: model.system.unwrap_or_default(),
             variables: Context::new(model.variables.unwrap_or_default()),
             environments: model
                 .environments

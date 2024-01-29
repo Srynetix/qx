@@ -24,3 +24,7 @@ test:
 # Changelog
 changelog:
     git cliff -o CHANGELOG.md
+
+# Bump versions
+bump-version version:
+    cargo xtask bump-version {{ version }}

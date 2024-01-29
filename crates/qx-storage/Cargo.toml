@@ -1,13 +1,13 @@
 [package]
 name = "qx-storage"
-version = "0.2.1"
+version = "0.3.0"
 edition = "2021"
 
 [dependencies]
 qx-core = { path = "../qx-core" }
 
 dirs = "5.0.1"
-serde_yaml = "0.9.30"
+serde_yaml = "0.9.31"
 
 color-eyre = { workspace = true }
 serde = { workspace = true }

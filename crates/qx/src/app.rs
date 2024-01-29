@@ -14,6 +14,7 @@ use crate::args::{Args, ArgsCommand};
 pub enum AppStatusCode {
     Success,
     Error,
+    Restart,
 }
 
 impl AppStatusCode {
@@ -21,6 +22,7 @@ impl AppStatusCode {
         match self {
             Self::Success => 0,
             Self::Error => 1,
+            Self::Restart => 2,
         }
     }
 }
@@ -40,19 +42,29 @@ impl<'a, E: CommandExecutor> App<'a, E> {
         Self::setup_logging(args.verbose);
 
         let storage = ConfigurationStorage::new(file_access);
-        let configuration = args.load_configuration_or_default(&storage)?;
-        let configuration_path = args.get_configuration_path(&storage);
 
-        let app = Self {
-            configuration,
-            configuration_path,
-            executor,
-        };
+        // Use a loop to handle "hot" reloading of the configuration
+        // once file edition is finished.
+        loop {
+            let configuration = args.load_configuration_or_default(&storage)?;
+            let configuration_path = args.get_configuration_path(&storage);
 
-        match args.command() {
-            ArgsCommand::Boot(filter) => app.handle_environment(filter),
-            ArgsCommand::Edit => app.handle_edit(),
-            ArgsCommand::Interactive => app.handle_interactive(),
+            let app = Self {
+                configuration,
+                configuration_path,
+                executor,
+            };
+
+            let result = match args.command() {
+                ArgsCommand::Interactive => app.handle_interactive(),
+                ArgsCommand::Boot(filter) => app.handle_environment(filter),
+                ArgsCommand::Edit => app.handle_edit(),
+            }?;
+
+            match result {
+                AppStatusCode::Restart => continue,
+                _ => return Ok(result),
+            }
         }
     }
 
@@ -94,6 +106,22 @@ impl<'a, E: CommandExecutor> App<'a, E> {
         environment.boot(&context)
     }
 
+    fn edit(&self) -> Result<()> {
+        println!(
+            "  > Opening configuration file {:?} for edition",
+            self.configuration_path
+        );
+        println!();
+
+        let intent = self
+            .configuration
+            .system
+            .open_editor(&self.configuration_path);
+        self.executor.execute(intent)?;
+
+        Ok(())
+    }
+
     fn handle_environment(&self, filter: Option<&String>) -> Result<AppStatusCode> {
         if let Some(filter) = filter {
             let filtered_environments = self.configuration.filter_environments(filter);
@@ -104,6 +132,8 @@ impl<'a, E: CommandExecutor> App<'a, E> {
             } else {
                 self.handle_boot(filtered_environments[0])
             }
+        } else if self.configuration.system.should_defaults_to_interactive() {
+            self.handle_interactive()
         } else {
             self.handle_list_environments()
         }
@@ -139,17 +169,7 @@ impl<'a, E: CommandExecutor> App<'a, E> {
     }
 
     fn handle_edit(&self) -> Result<AppStatusCode> {
-        println!(
-            "  > Opening configuration file {:?} for edition",
-            self.configuration_path
-        );
-        println!();
-
-        let intent = self
-            .configuration
-            .system
-            .open_editor(&self.configuration_path);
-        self.executor.execute(intent)?;
+        self.edit()?;
 
         Ok(AppStatusCode::Success)
     }
@@ -164,6 +184,10 @@ impl<'a, E: CommandExecutor> App<'a, E> {
         let choice = qx_tui::run_loop(&self.configuration)?;
         match choice {
             Choice::Boot(env) => self.boot(env)?,
+            Choice::Edit => {
+                self.edit()?;
+                return Ok(AppStatusCode::Restart);
+            }
             Choice::Quit | Choice::Continue => (),
         }
 

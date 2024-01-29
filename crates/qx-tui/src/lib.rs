@@ -26,6 +26,7 @@ struct State {
 
 pub enum Choice<'a> {
     Boot(&'a Environment),
+    Edit,
     Continue,
     Quit,
 }
@@ -81,6 +82,7 @@ fn handle_events<'a>(
                         }
                     }
                     KeyCode::Char('q') => return Ok(Choice::Quit),
+                    KeyCode::Char('e') => return Ok(Choice::Edit),
                     _ => (),
                 }
             }
@@ -141,7 +143,7 @@ fn ui<'a>(environments: &[(&'a String, &'a Environment)], frame: &mut Frame, sta
         frame.render_widget(paragraph, center_areas[1]);
     }
 
-    let status = Paragraph::new("UP/DOWN - Move cursor    ENTER - Select    Q - Quit")
+    let status = Paragraph::new("UP/DOWN - Move cursor    ENTER - Select    E - Edit    Q - Quit")
         .alignment(Alignment::Center);
     frame.render_widget(status, main_areas[1]);
 }
