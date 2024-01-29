@@ -4,10 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [0.3.0] - 2024-01-29
 
+### Bug Fixes
+
+- Exclude xtask for dist
+
 ### Documentation
 
 - README and CHANGELOG update
 - Update README
+- Update CHANGELOG
 
 ### Features
 
