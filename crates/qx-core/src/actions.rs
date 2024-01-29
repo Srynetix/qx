@@ -1,5 +1,7 @@
+use std::fmt::Write;
 use std::path::PathBuf;
 
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 use tracing::info;
 use url::Url;
@@ -101,7 +103,7 @@ impl Action {
             Action::OpenUrl(action) => {
                 info!(
                     message = "Running OpenUrl action",
-                    target = ?action.target
+                    target = %action.target
                 );
 
                 let intent = ctx.system.open_web_browser(&action.target);
@@ -124,16 +126,39 @@ impl Action {
     pub fn to_pretty_string(&self) -> String {
         match self {
             Self::Run(action) => {
-                format!(
-                    "Run application {:?} with args {:?} and working directory {:?} using creation type {:?}",
-                    action.target, action.args, action.working_directory, action.creation_type
+                let mut output = String::new();
+
+                write!(output, "Run application {:?}", action.target).unwrap();
+                if let Some(args) = &action.args {
+                    write!(
+                        output,
+                        " with args [{}]",
+                        args.iter()
+                            .map(|a| format!("\"{a}\""))
+                            .collect_vec()
+                            .join(", ")
+                    )
+                    .unwrap();
+                }
+
+                if let Some(cwd) = &action.working_directory {
+                    write!(output, " with working directory {:?}", cwd).unwrap();
+                }
+
+                write!(
+                    output,
+                    " using creation type \"{:?}\"\n",
+                    action.creation_type
                 )
+                .unwrap();
+
+                output
             }
             Self::OpenFile(action) => {
                 format!("Open file or folder {:?}", action.target)
             }
             Self::OpenUrl(action) => {
-                format!("Open URL {:?}", action.target)
+                format!("Open URL \"{}\"", action.target)
             }
             Self::ShowMessage(action) => {
                 format!("Show message {:?}", action.message)

@@ -13,7 +13,6 @@ enum Args {
 
 fn main() -> Result<()> {
     let args = Args::parse();
-    println!("{:?}", args);
 
     match args {
         Args::BumpVersion { version } => {
