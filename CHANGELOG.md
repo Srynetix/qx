@@ -2,15 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.3.0] - 2024-01-29
 
 ### Documentation
 
 - README and CHANGELOG update
+- Update README
 
 ### Features
 
 - Add abstractions
+- Add xtask, file edition in interactive mode
 
 ## [0.2.1] - 2024-01-26
 
