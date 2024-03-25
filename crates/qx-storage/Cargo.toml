@@ -7,7 +7,7 @@ edition = "2021"
 qx-core = { path = "../qx-core" }
 
 dirs = "5.0.1"
-serde_yaml = "0.9.31"
+serde_yaml = "0.9.34"
 
 color-eyre = { workspace = true }
 serde = { workspace = true }
