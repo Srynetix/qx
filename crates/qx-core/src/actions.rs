@@ -145,9 +145,9 @@ impl Action {
                     write!(output, " with working directory {:?}", cwd).unwrap();
                 }
 
-                write!(
+                writeln!(
                     output,
-                    " using creation type \"{:?}\"\n",
+                    " using creation type \"{:?}\"",
                     action.creation_type
                 )
                 .unwrap();
