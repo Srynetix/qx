@@ -6,7 +6,7 @@ edition = "2021"
 [dependencies]
 qx-core = { path = "../qx-core" }
 
-crossterm = "0.27.0"
+crossterm = "0.28.0"
 ratatui = "0.25.0"
 
 color-eyre = { workspace = true }
